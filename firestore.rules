@@ -1,0 +1,154 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    // Global Safety Net: Default deny everything
+    match /{document=**} {
+      allow read, write: if false;
+    }
+
+    // --- REUSABLE UTILITIES AND AUTH SECURITY ---
+    function isSignedIn() {
+      return request.auth != null;
+    }
+
+    function isOwner(uid) {
+      return isSignedIn() && request.auth.uid == uid;
+    }
+
+    function isValidId(id) {
+      return id is string && id.size() <= 128 && id.matches('^[a-zA-Z0-9_\\-\\.]+$');
+    }
+
+    function incoming() {
+      return request.resource.data;
+    }
+
+    function existing() {
+      return resource.data;
+    }
+
+    // --- VALIDATION SCRIPTS FOR COLLECTIONS ---
+
+    // 1. User Validation Helper
+    function isValidUser(data) {
+      return data.uid is string &&
+             data.username is string && data.username.size() >= 3 && data.username.size() <= 24 &&
+             data.avatar is string &&
+             data.level is int && data.level >= 1 &&
+             data.xp is int && data.xp >= 0 &&
+             data.coins is int && data.coins >= 0 &&
+             data.credibilityScore is int &&
+             data.premium is bool &&
+             data.role in ['user', 'creator', 'admin'];
+    }
+
+    // 2. Room Validation Helper
+    function isValidRoom(data) {
+      return data.roomId is string &&
+             data.title is string && data.title.size() <= 100 &&
+             data.description is string && data.description.size() <= 1000 &&
+             data.category in ['Mystery', 'Horror', 'Treasure Hunt', 'Conspiracy', 'Historical', 'Daily'] &&
+             data.difficulty in ['Easy', 'Medium', 'Hard', 'Expert'] &&
+             data.status in ['active', 'archived', 'draft'] &&
+             data.story is string &&
+             data.creatorId is string &&
+             data.puzzle is map;
+    }
+
+    // 3. Clue Validation Helper
+    function isValidClue(data) {
+      return data.clueId is string &&
+             data.roomId is string &&
+             data.userId is string && data.userId == request.auth.uid &&
+             data.username is string &&
+             data.clueType in ['text', 'voice', 'drawing'] &&
+             data.content is string && data.content.size() <= 200000 && // accommodate drawing base64 data
+             data.helpfulVotes is int &&
+             data.misleadingVotes is int &&
+             data.funnyVotes is int &&
+             data.geniusVotes is int &&
+             data.netCredibility is int &&
+             data.flagged is bool;
+    }
+
+    // 4. Room Progress Validation
+    function isValidProgress(data) {
+      return data.userId is string && data.userId == request.auth.uid &&
+             data.roomId is string &&
+             data.completed is bool;
+    }
+
+    // --- COLLECTION ALLOW MATCHERS ---
+
+    // USERS COLLECTION
+    match /users/{uid} {
+      allow read: if isSignedIn();
+      allow create: if isOwner(uid) && isValidUser(incoming()) && incoming().createdAt is string && incoming().createdAt.size() <= 50;
+      allow update: if isOwner(uid) && isValidUser(incoming()) && incoming().uid == existing().uid && incoming().createdAt == existing().createdAt;
+    }
+
+    // ROOMS COLLECTION
+    match /rooms/{roomId} {
+      allow read: if true;
+      allow create: if (
+        (roomId.matches('^room_.*')) ||
+        (isSignedIn() && isValidId(roomId) && isValidRoom(incoming()) && incoming().createdAt is string && incoming().createdAt.size() <= 50)
+      );
+      allow update: if (
+        (roomId.matches('^room_.*')) ||
+        (isSignedIn() && isValidRoom(incoming()) && (
+          resource.data.creatorId == request.auth.uid ||
+          // Allow updating metadata like totalVisits by other players
+          incoming().diff(existing()).affectedKeys().hasOnly(['totalVisits', 'totalPlayers', 'evolvedLore'])
+        ))
+      );
+    }
+
+    // CLUES COLLECTION
+    match /clues/{clueId} {
+      allow read: if true;
+      allow create: if isSignedIn() && isValidId(clueId) && isValidClue(incoming()) && incoming().createdAt is string && incoming().createdAt.size() <= 50;
+      // Allow the author to edit/delete, or allow any user to edit the vote counts
+      allow update: if isSignedIn() && (
+        (existing().userId == request.auth.uid && isValidClue(incoming())) ||
+        incoming().diff(existing()).affectedKeys().hasAny(['helpfulVotes', 'misleadingVotes', 'funnyVotes', 'geniusVotes', 'netCredibility', 'flagged'])
+      );
+    }
+
+    // ROOM PROGRESS COLLECTION
+    match /room_progress/{progressId} {
+      allow read: if isSignedIn() && (resource == null || resource.data.userId == request.auth.uid);
+      allow create: if isSignedIn() && isValidProgress(incoming()) && incoming().createdAt is string && incoming().createdAt.size() <= 50;
+      allow update: if isSignedIn() && existing().userId == request.auth.uid && isValidProgress(incoming());
+    }
+
+    // MARKETPLACE ROOMS COLLECTION
+    match /marketplace_rooms/{listingId} {
+      allow read: if true;
+      allow create: if isSignedIn() && incoming().creatorId == request.auth.uid;
+      allow update: if isSignedIn() && (
+        resource.data.creatorId == request.auth.uid ||
+        incoming().diff(existing()).affectedKeys().hasAny(['purchases', 'revenue', 'rating'])
+      );
+    }
+
+    // SUBSCRIPTIONS COLLECTION
+    match /subscriptions/{userId} {
+      allow read: if isSignedIn() && isOwner(userId);
+      // Allow writing to activate subscription via server simulation
+      allow write: if isSignedIn() && isOwner(userId);
+    }
+
+    // NOTIFICATIONS COLLECTION
+    match /notifications/{notificationId} {
+      allow read, write: if isSignedIn() && (resource == null || resource.data.userId == request.auth.uid);
+    }
+
+    // LEADERBOARDS COLLECTION
+    match /leaderboards/{docId} {
+      allow read: if true;
+      allow write: if isSignedIn();
+    }
+  }
+}

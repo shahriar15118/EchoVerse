@@ -1,0 +1,191 @@
+{
+  "entities": {
+    "User": {
+      "title": "User Profile",
+      "description": "Represents a player and creator profile in the system",
+      "type": "object",
+      "properties": {
+        "uid": { "type": "string" },
+        "username": { "type": "string" },
+        "email": { "type": "string" },
+        "avatar": { "type": "string" },
+        "bio": { "type": "string" },
+        "credibilityScore": { "type": "integer" },
+        "level": { "type": "integer" },
+        "rank": { "type": "string" },
+        "xp": { "type": "integer" },
+        "coins": { "type": "integer" },
+        "premium": { "type": "boolean" },
+        "role": { "type": "string", "enum": ["user", "creator", "admin"] },
+        "interests": { "type": "array", "items": { "type": "string" } },
+        "createdAt": { "type": "string" },
+        "lastActiveAt": { "type": "string" }
+      },
+      "required": ["uid", "username", "email", "avatar", "credibilityScore", "level", "rank", "xp", "coins", "premium", "role"]
+    },
+    "Room": {
+      "title": "Mystery Room",
+      "description": "A persistent multiplayer interactive puzzle chamber.",
+      "type": "object",
+      "properties": {
+        "roomId": { "type": "string" },
+        "title": { "type": "string" },
+        "description": { "type": "string" },
+        "category": { "type": "string", "enum": ["Mystery", "Horror", "Treasure Hunt", "Conspiracy", "Historical"] },
+        "creatorId": { "type": "string" },
+        "creatorName": { "type": "string" },
+        "difficulty": { "type": "string", "enum": ["Easy", "Medium", "Hard", "Expert"] },
+        "status": { "type": "string", "enum": ["active", "archived", "draft"] },
+        "thumbnail": { "type": "string" },
+        "totalPlayers": { "type": "integer" },
+        "totalVisits": { "type": "integer" },
+        "premium": { "type": "boolean" },
+        "aiGenerated": { "type": "boolean" },
+        "story": { "type": "string" },
+        "puzzle": {
+          "type": "object",
+          "properties": {
+            "description": { "type": "string" },
+            "solution": { "type": "string" },
+            "objects": { "type": "array" },
+            "hints": { "type": "array" }
+          }
+        },
+        "hiddenLore": { "type": "array", "items": { "type": "string" } },
+        "evolvedLore": { "type": "array", "items": { "type": "string" } },
+        "createdAt": { "type": "string" }
+      },
+      "required": ["roomId", "title", "description", "category", "creatorId", "difficulty", "status", "story", "puzzle", "createdAt"]
+    },
+    "Clue": {
+      "title": "Player Clue",
+      "description": "An asynchronous text, audio (base64/Mock URL), or drawing left by a player in a room",
+      "type": "object",
+      "properties": {
+        "clueId": { "type": "string" },
+        "roomId": { "type": "string" },
+        "userId": { "type": "string" },
+        "username": { "type": "string" },
+        "content": { "type": "string" },
+        "clueType": { "type": "string", "enum": ["text", "voice", "drawing"] },
+        "helpfulVotes": { "type": "integer" },
+        "misleadingVotes": { "type": "integer" },
+        "funnyVotes": { "type": "integer" },
+        "geniusVotes": { "type": "integer" },
+        "netCredibility": { "type": "integer" },
+        "flagged": { "type": "boolean" },
+        "createdAt": { "type": "string" }
+      },
+      "required": ["clueId", "roomId", "userId", "username", "content", "clueType", "helpfulVotes", "misleadingVotes", "funnyVotes", "geniusVotes", "netCredibility", "flagged", "createdAt"]
+    },
+    "RoomProgress": {
+      "title": "Player Room Progress",
+      "description": "Tracks player solving metrics for a particular room",
+      "type": "object",
+      "properties": {
+        "userId": { "type": "string" },
+        "roomId": { "type": "string" },
+        "completed": { "type": "boolean" },
+        "completionTime": { "type": "integer" },
+        "score": { "type": "integer" },
+        "cluesLeft": { "type": "integer" },
+        "createdAt": { "type": "string" }
+      },
+      "required": ["userId", "roomId", "completed", "createdAt"]
+    },
+    "MarketplaceRoom": {
+      "title": "Marketplace Listing",
+      "description": "A premium room listing for sale",
+      "type": "object",
+      "properties": {
+        "listingId": { "type": "string" },
+        "roomId": { "type": "string" },
+        "creatorId": { "type": "string" },
+        "title": { "type": "string" },
+        "description": { "type": "string" },
+        "price": { "type": "number" },
+        "bundleItems": { "type": "array" },
+        "purchases": { "type": "integer" },
+        "rating": { "type": "number" },
+        "revenue": { "type": "number" },
+        "createdAt": { "type": "string" }
+      },
+      "required": ["listingId", "roomId", "creatorId", "title", "description", "price", "purchases", "createdAt"]
+    },
+    "Subscription": {
+      "title": "Premium Subscription",
+      "description": "Tracks subscription level of a user",
+      "type": "object",
+      "properties": {
+        "userId": { "type": "string" },
+        "plan": { "type": "string", "enum": ["free", "premium"] },
+        "stripeCustomerId": { "type": "string" },
+        "stripeSubscriptionId": { "type": "string" },
+        "active": { "type": "boolean" },
+        "expiresAt": { "type": "string" }
+      },
+      "required": ["userId", "plan", "active"]
+    },
+    "Notification": {
+      "title": "In-app Notification",
+      "description": "Interactive push alert shown when a clue matches activity, votes are made, or events trigger",
+      "type": "object",
+      "properties": {
+        "notificationId": { "type": "string" },
+        "userId": { "type": "string" },
+        "title": { "type": "string" },
+        "body": { "type": "string" },
+        "type": { "type": "string", "enum": ["vote", "achievement", "daily", "system"] },
+        "read": { "type": "boolean" },
+        "createdAt": { "type": "string" }
+      },
+      "required": ["notificationId", "userId", "title", "body", "type", "read", "createdAt"]
+    },
+    "Leaderboard": {
+      "title": "Leaderboard Sheet",
+      "description": "A structured ranking sheet per period",
+      "type": "object",
+      "properties": {
+        "period": { "type": "string" },
+        "category": { "type": "string" },
+        "entries": { "type": "array" },
+        "updatedAt": { "type": "string" }
+      },
+      "required": ["period", "category", "entries", "updatedAt"]
+    }
+  },
+  "firestore": {
+    "users/{uid}": {
+      "schema": "User",
+      "description": "User profiling, rank indicators, streak tokens, coin wallet, and preferences"
+    },
+    "rooms/{roomId}": {
+      "schema": "Room",
+      "description": "Interactive virtual rooms created manually or AI-breathed"
+    },
+    "clues/{clueId}": {
+      "schema": "Clue",
+      "description": "Active dynamic trace echo records left inside each room"
+    },
+    "room_progress/{userId_roomId}": {
+      "schema": "RoomProgress",
+      "description": "Asynchronous record of solve history"
+    },
+    "marketplace_rooms/{listingId}": {
+      "schema": "MarketplaceRoom",
+      "description": "Premium campaign listings available inside the bazaar"
+    },
+    "subscriptions/{userId}": {
+      "schema": "Subscription",
+      "description": "Client profile payment subscription record"
+    },
+    "notifications/{notificationId}": {
+      "schema": "Notification",
+      "description": "Individual notifications"
+    },
+    "leaderboards/{docId}": {
+      "schema": "Leaderboard",
+      "description": "Aggregated competitive leaderboard listings"
+    }
+  }
+}

@@ -1,0 +1,8 @@
+{
+  "name": "EchoVerse",
+  "description": "Persistent multiplayer mystery archives where every room permanently remembers and records previous players' clues, discoveries, maps, and voice logs.",
+  "requestFramePermissions": [
+    "microphone"
+  ],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}

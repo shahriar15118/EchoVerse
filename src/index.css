@@ -1,0 +1,133 @@
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:wght@300;400;500;700&display=swap');
+@import "tailwindcss";
+
+@theme {
+  --font-sans: "Inter", ui-sans-serif, system-ui, -apple-system, sans-serif;
+  --font-mono: "JetBrains Mono", ui-monospace, SFMono-Regular, monospace;
+}
+
+/* Atmospheric terminal scanline or custom scrolling effects */
+body {
+  background-color: #0A0A0C;
+  color: #dee2e6;
+  font-family: var(--font-sans);
+  overflow-x: hidden;
+}
+
+/* custom fade-in keyframes */
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(6px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.animate-fade-in {
+  animation: fadeIn 0.35s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
+
+/* 1. Snow drifting animation for Laboratory C */
+@keyframes snowFall {
+  0% {
+    transform: translateY(-20px) translateX(0px);
+    opacity: 0;
+  }
+  10% {
+    opacity: 0.8;
+  }
+  90% {
+    opacity: 0.6;
+  }
+  100% {
+    transform: translateY(270px) translateX(25px);
+    opacity: 0;
+  }
+}
+.animate-snow {
+  animation: snowFall 4s linear infinite;
+}
+
+/* 2. Flickering torch flame for Alchemist's Crypt */
+@keyframes flickerFlame {
+  0%, 100% {
+    transform: scale(1) rotate(-1deg);
+    filter: brightness(1);
+  }
+  20% {
+    transform: scale(1.05) rotate(1deg);
+    filter: brightness(1.1);
+  }
+  40% {
+    transform: scale(0.95) rotate(-2deg);
+    filter: brightness(0.9);
+  }
+  60% {
+    transform: scale(1.1) rotate(2deg);
+    filter: brightness(1.2);
+  }
+  80% {
+    transform: scale(0.97) rotate(-0.5deg);
+    filter: brightness(0.95);
+  }
+}
+.animate-flicker-flame {
+  animation: flickerFlame 0.8s ease-in-out infinite;
+}
+
+/* 3. Rising alchemical sparkles for the Crucible */
+@keyframes alchemicalSparkle {
+  0% {
+    transform: translateY(0) scale(0.5);
+    opacity: 0;
+  }
+  20% {
+    opacity: 1;
+  }
+  80% {
+    opacity: 0.8;
+  }
+  100% {
+    transform: translateY(-110px) translateX(10px) scale(1.2);
+    opacity: 0;
+  }
+}
+.animate-sparkle {
+  animation: alchemicalSparkle 2.5s ease-out infinite;
+}
+
+/* 4. Scanning scanline movement effect for sci-fi atmosphere map */
+@keyframes scanlineMove {
+  0% {
+    background-position: 0 0;
+  }
+  100% {
+    background-position: 0 100%;
+  }
+}
+.animate-scanline {
+  animation: scanlineMove 6s linear infinite;
+}
+
+/* Custom retro scrollbar */
+.custom-scrollbar::-webkit-scrollbar {
+  width: 5px;
+}
+.custom-scrollbar::-webkit-scrollbar-track {
+  background: #0A0A0C;
+}
+.custom-scrollbar::-webkit-scrollbar-thumb {
+  background: #1C1C24;
+  border-radius: 4px;
+}
+.custom-scrollbar::-webkit-scrollbar-thumb:hover {
+  background: #0D9488;
+}
+
+/* Keypad input neon styling */
+input::placeholder {
+  color: #475569;
+}
